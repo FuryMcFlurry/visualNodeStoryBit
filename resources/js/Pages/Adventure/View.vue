@@ -238,6 +238,20 @@ function playSound(character) {
 }
 
 function displayText(text, callback) {
+    
+  if (isTyping.value) {
+    clearInterval(typingInterval);
+    displayedText.value = getCurrentNode().data.text;
+    isTyping.value = false;
+    playSound('.');
+    
+    const currentNode = getCurrentNode();
+    if (currentNode && currentNode.type === 'choice' && currentNode.data.choices) {
+      displayChoicesMenu(currentNode.data.choices);
+    }
+    return
+  } 
+
   if (typingInterval) {
     clearInterval(typingInterval);
   }
@@ -265,6 +279,9 @@ function getCurrentNode() {
 }
 
 function getNextNode() {
+  //lazy workaround to stop it from proceeding to next node if we're still typing.
+  //maybe just add another && !isSkip() for when we implement skipping...
+  //if (isTyping.value) { return; }
   const currentNode = getCurrentNode();
   console.log(currentNode.type);
   // Find the edge that starts from the current node
@@ -312,6 +329,7 @@ function findNodeByType(type) {
 function handleChoiceSelection() {
   const selectedChoice = currentChoices.value[selectedChoiceIndex.value];
   console.log('Selected choice:', selectedChoice);
+  displayChoices.value = false
 
   // Use the target node ID from the updated choice
   const targetNodeId = selectedChoice.target;
@@ -395,7 +413,7 @@ function loadProgress() {
 
 function processCurrentNode() {
   const currentNode = getCurrentNode();
-
+  isTyping.value = false;
   if (!currentNode) {
     console.error('No current node found.');
     return;
@@ -404,12 +422,12 @@ function processCurrentNode() {
   switch (currentNode.type) {
     case 'textInput':
       handleTextNode(currentNode);
-      proceedToNextNode();
+      getNextNode();
       break;
 
     case 'start':
       handleTextNode(currentNode);  // Ensure this is correct if the 'start' node contains text
-      proceedToNextNode();  // Move to the next node after processing the start node
+      getNextNode();
       break;
 
     case 'choice':
@@ -418,12 +436,12 @@ function processCurrentNode() {
 
     case 'redirect':
       handleRedirectNode(currentNode);
-      proceedToNextNode();
+      getNextNode();
       break;
 
     case 'keyAdder':
       handleKeyAdderNode(currentNode);
-      proceedToNextNode();
+      getNextNode();
       break;
       
     case 'stop':
@@ -434,16 +452,6 @@ function processCurrentNode() {
       console.error(`Unhandled node type: ${currentNode.type}`);
   }
   
-}
-
-function proceedToNextNode() {
-  const nextNode = getNextNode();  // Implement logic to fetch the next node in the flow
-  if (nextNode) {
-    setCurrentNode(nextNode);  // Set the new current node
-    processCurrentNode();  // Continue processing
-  } else {
-    console.error('No next node found.');
-  }
 }
 
 function handleKeyPress(event) {
@@ -457,19 +465,7 @@ function handleKeyPress(event) {
     }
   } else {
     if (event.key === 'Enter' || event.key === 'z') {
-      if (isTyping.value) {
-        clearInterval(typingInterval);
-        displayedText.value = getCurrentNode().data.text;
-        isTyping.value = false;
-        playSound('.');
-        
-        const currentNode = getCurrentNode();
-        if (currentNode && currentNode.type === 'choice' && currentNode.data.choices) {
-          displayChoicesMenu(currentNode.data.choices);
-        }
-      } else {
         processCurrentNode();
-      }
     }
   }
 }
