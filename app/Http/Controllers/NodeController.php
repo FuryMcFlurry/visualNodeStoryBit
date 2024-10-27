@@ -89,7 +89,7 @@ class NodeController extends Controller
         return response()->json(['progress' => $user->game_progress]);
     }
 
-
+//adventure maybe new model/controller?
     public function characterSelect()
     {
         $backstories = Background::all(); // Fetching all background characters from DB
@@ -97,6 +97,25 @@ class NodeController extends Controller
             'title' => 'Character Creator',
             'backstories' => $backstories, // Passing to Vue component
         ]);
+    }
+    
+    public function confirmSelection(Request $request)
+    {
+        $characterId = $request->input('characterId');
+        $background = Background::find($characterId);
+
+        if ($background) {
+            return response()->json([
+                'success' => true,
+                'message' => "Character selection confirmed for character ID: {$characterId}!",
+                'background' => $background, 
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => "No background found for character ID: {$characterId}."
+            ], 404);
+        }
     }
 
 }

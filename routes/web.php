@@ -27,7 +27,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    //adventure page
     Route::get('/characterSelect', [NodeController::class, 'characterSelect'])->name('view.characterSelect');
+    //adventure api bits.
+    Route::post('/character-select/confirm', [NodeController::class, 'confirmSelection'])->name('character.select.confirm');
+
+
     Route::get('/adventure', [NodeController::class, 'view'])->name('view.adventure');
     Route::post('/save-progress', [NodeController::class, 'saveProgress'])->name('view.saveProgress');
     Route::get('/load-progress', [NodeController::class, 'loadProgress'])->name('view.loadProgress');
